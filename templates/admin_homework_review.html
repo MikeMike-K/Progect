@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📋 Домашние задания: список</h2>
+<div class="list-group">{% for s in students %}
+    <a href="/admin/homework_review/{{ s.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <div><strong>{{ s.username }}</strong>{% if s.class_grade %}<span class="badge bg-secondary ms-2">{{ s.class_grade }} класс</span>{% endif %}</div>
+        <span class="btn btn-sm btn-outline-primary">📚 Открыть ДЗ</span></a>
+{% else %}<div class="list-group-item text-muted">Учеников нет</div>{% endfor %}</div>
+<a href="/admin/panel" class="btn btn-secondary mt-3">← Назад</a>
+{% endblock %}

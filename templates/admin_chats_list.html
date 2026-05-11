@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💬 Чаты с пользователями</h2>
+
+<!-- ✅ Вкладки для фильтрации -->
+<div class="mb-4 btn-group shadow-sm" role="group">
+    <a href="/admin/chats" class="btn {% if active_role=='all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        👥 Все <span class="badge bg-light text-dark ms-1">{{ chat_list|length }}</span>
+    </a>
+    <a href="/admin/chats/student" class="btn {% if active_role=='student' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        🎓 Ученики
+    </a>
+    <a href="/admin/chats/parent" class="btn {% if active_role=='parent' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        👨‍👩‍👧 Родители
+    </a>
+</div>
+
+<!-- ✅ Единый список чатов -->
+<div class="list-group shadow-sm">
+    {% for item in chat_list %}
+    <a href="/admin/chat/{{ item.user.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 {% if item.unread > 0 %}bg-light border-start border-4 border-primary{% endif %}">
+        <div class="d-flex align-items-center gap-3">
+            <!-- Аватар-иконка по роли -->
+            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                 style="width: 40px; height: 40px; font-size: 1.2rem;">
+                {% if item.user.role == 'student' %}🎓{% else %}👨‍👩‍👧{% endif %}
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <strong class="fs-5">{{ item.user.username }}</strong>
+                    <span class="badge {% if item.user.role == 'student' %}bg-info{% else %}bg-success{% endif %} text-dark">
+                        {{ 'ученик' if item.user.role == 'student' else 'родитель' }}
+                    </span>
+                    {% if item.user.class_grade %}
+                        <small class="text-muted">({{ item.user.class_grade }} кл.)</small>
+                    {% endif %}
+                </div>
+                <small class="text-muted">
+                    {% if item.last_msg %}
+                        {% if item.last_msg.filename and not item.last_msg.message %}📎 Файл{% else %}{{ item.last_msg.message[:60] }}{% if item.last_msg.message|length > 60 %}...{% endif %}{% endif %}
+                    {% else %}
+                        Нет сообщений
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+
+        <!-- Статус и время -->
+        <div class="text-end">
+            {% if item.unread > 0 %}
+                <span class="badge bg-danger rounded-pill mb-1">{{ item.unread }} новых</span>
+            {% endif %}
+            <br>
+            <small class="text-muted">Всего: {{ item.total }}</small>
+            {% if item.last_msg and item.last_msg.created_at %}
+                <br><small class="text-muted">{{ item.last_msg.created_at.strftime('%d.%m %H:%M') }}</small>
+            {% endif %}
+        </div>
+    </a>
+    {% else %}
+    <div class="list-group-item text-center py-5 text-muted">
+        {% if active_role == 'student' %}
+            🎓 Чатов с учениками пока нет
+        {% elif active_role == 'parent' %}
+            👨‍👩‍👧 Чатов с родителями пока нет
+        {% else %}
+            💬 Активных чатов пока нет
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

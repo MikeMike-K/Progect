@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>👨‍🎓 Выберите ученика для редактирования календаря</h2>
+<div class="list-group shadow-sm mt-3">
+    {% for s in students %}
+    <a href="/admin/calendar/student/{{ s.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-3">
+            <span style="width:25px;height:25px;border-radius:50%;background:{{ s.color_setting.color if s.color_setting else '#3788d8' }};"></span>
+            <div><strong>{{ s.username }}</strong>{% if s.class_grade %} <span class="badge bg-secondary">{{ s.class_grade }} кл.</span>{% endif %}</div>
+        </div>
+        <span class="btn btn-sm btn-outline-primary">✏️ Редактировать</span>
+    </a>
+    {% else %}
+    <div class="list-group-item text-center text-muted py-4">Ученики не найдены</div>
+    {% endfor %}
+</div>
+<a href="/admin/calendar" class="btn btn-secondary mt-3">← Назад к общему календарю</a>
+{% endblock %}

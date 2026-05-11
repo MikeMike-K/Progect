@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Панель управления - TutorPro{% endblock %}
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold text-white mb-3">👋 Добро пожаловать, {{ current_user.username }}!</h1>
+    <p class="lead text-white-50">Ваш персональный образовательный портал</p>
+</div>
+
+{% if current_user.role == 'student' %}
+<div class="row g-4 justify-content-center">
+    <div class="col-md-6 col-lg-3">
+        <a href="/homework/{{ current_user.id }}" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📚</div>
+                <h5 class="fw-bold mb-2">Домашние задания</h5>
+                <p class="text-muted small mb-0">Проверяйте и сдавайте работы</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/theory/{{ current_user.id }}" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📖</div>
+                <h5 class="fw-bold mb-2">Теория</h5>
+                <p class="text-muted small mb-0">Учебные материалы и конспекты</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/calendar/{{ current_user.id }}" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📅</div>
+                <h5 class="fw-bold mb-2">Календарь</h5>
+                <p class="text-muted small mb-0">Расписание занятий и дедлайны</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/my-chat" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">💬</div>
+                <h5 class="fw-bold mb-2">Чат с учителем</h5>
+                <p class="text-muted small mb-0">Задавайте вопросы онлайн</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+{% elif current_user.role == 'parent' %}
+<h3 class="text-white text-center mb-4">👨‍👩‍ Панель родителя</h3>
+<div class="row g-4 justify-content-center">
+    <div class="col-md-6 col-lg-3">
+        <a href="/homework/{{ child_id }}" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📚</div>
+                <h5 class="fw-bold mb-2">ДЗ ребенка</h5>
+                <p class="text-muted small mb-0">Контролируйте успеваемость</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/theory/{{ child_id }}" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📖</div>
+                <h5 class="fw-bold mb-2">Теория</h5>
+                <p class="text-muted small mb-0">Учебные материалы</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/calendar/parent" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📅</div>
+                <h5 class="fw-bold mb-2">Календарь</h5>
+                <p class="text-muted small mb-0">Расписание занятий</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/my-chat" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">💬</div>
+                <h5 class="fw-bold mb-2">Чат</h5>
+                <p class="text-muted small mb-0">Связь с преподавателем</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+{% elif current_user.role == 'admin' %}
+<h3 class="text-white text-center mb-4">⚙️ Панель администратора</h3>
+<div class="row g-4 justify-content-center">
+    <div class="col-md-6 col-lg-2">
+        <a href="/admin/panel" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">⚙️</div>
+                <h6 class="fw-bold mb-2">Управление</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-2">
+        <a href="/admin/chats" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">💬</div>
+                <h6 class="fw-bold mb-2">Чаты</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-2">
+        <a href="/admin/calendar" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">🌐</div>
+                <h6 class="fw-bold mb-2">Календарь</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-2">
+        <a href="/admin/archive" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📦</div>
+                <h6 class="fw-bold mb-2">Архив</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-2">
+        <a href="/admin/theory" class="text-decoration-none">
+            <div class="feature-card text-center h-100">
+                <div class="display-4 mb-3">📖</div>
+                <h6 class="fw-bold mb-2">Теория</h6>
+            </div>
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

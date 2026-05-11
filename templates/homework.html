@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<style>html { scroll-behavior: smooth; } .hw-card { scroll-margin-top: 80px; }</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">📚 Домашнее задание</h2>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('homework', user_id=u.id) }}" class="btn btn-primary">📝 Текущие</a>
+        <a href="{{ url_for('homework_archive', user_id=u.id) }}" class="btn btn-outline-primary">📦 Выполнено</a>
+    </div>
+</div>
+
+{% if items %}
+    {% for item in items %}
+    <div class="card mb-3 {{ 'border-success' if item.grade else ('border-warning' if item.is_submitted else 'border-primary') }} hw-card" id="hw_{{ item.id }}">
+        <div class="card-header {{ 'bg-success' if item.grade else ('bg-warning' if item.is_submitted else 'bg-primary') }} text-white d-flex justify-content-between align-items-center">
+            <div><strong>{{ item.heading }}</strong>{% if item.subheading %} <small>| {{ item.subheading }}</small>{% endif %}</div>
+            <div><small>{{ item.created_at.strftime('%d.%m.%Y') }}</small>
+                {% if item.grade %}<span class="badge bg-light text-success ms-2">✅ Проверено</span>
+                {% elif item.is_submitted %}<span class="badge bg-dark ms-2">⏳ Проверяется</span>
+                {% else %}<span class="badge bg-light text-dark ms-2">📝 В работе</span>{% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ item.comment | replace('\n', '<br>') | safe }}</p>
+            {% if item.files %}
+                {% set t_files = item.files | selectattr('uploader_id', 'ne', u.id) | list %}
+                {% set s_files = item.files | selectattr('uploader_id', 'eq', u.id) | list %}
+                {% if t_files %}<div class="mb-2 bg-light p-2 rounded border"><small class="fw-bold">📎 От учителя:</small>{% for f in t_files %}<a href="/uploads/{{ f.filepath }}" target="_blank" class="d-block text-dark mt-1">📄 {{ f.filename }}</a>{% endfor %}</div>{% endif %}
+                {% if s_files %}<div class="mb-2 bg-success bg-opacity-10 p-2 rounded border border-success"><small class="text-success fw-bold">📤 Ваши файлы:</small>{% for f in s_files %}<div class="d-block mt-1">📄 {{ f.filename }}</div>{% endfor %}</div>{% endif %}
+            {% endif %}
+            {% if item.student_comment %}<div class="alert alert-light border py-1 mt-2 small">💬 {{ item.student_comment }}</div>{% endif %}
+            {% if current_user.role == 'student' and current_user.id == u.id and not item.is_submitted and item.allow_student_upload %}
+            <hr><form method="POST" enctype="multipart/form-data"><input type="hidden" name="content_id" value="{{ item.id }}">
+                <input type="file" name="homework_file" class="form-control form-control-sm mb-2">
+                <textarea name="student_comment" class="form-control form-control-sm mb-2" rows="2" placeholder="Пояснения...">{{ item.student_comment or '' }}</textarea>
+                <div class="d-flex gap-2"><button type="submit" name="action" value="upload" class="btn btn-outline-secondary btn-sm">💾 Черновик</button><button type="submit" name="action" value="submit" class="btn btn-success btn-sm" onclick="return confirm('Отправить? Редактирование будет закрыто.');">📤 Отправить</button></div>
+            </form>{% endif %}
+        </div>
+        {% if item.grade %}<div class="card-footer bg-success bg-opacity-10 border-success"><strong>🏆 {{ item.grade }}/5</strong>{% if item.teacher_comment %} <span class="text-muted ms-2">💬 {{ item.teacher_comment }}</span>{% endif %}</div>{% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="alert alert-info text-center py-4">📭 Нет текущих заданий</div>
+{% endif %}
+{% endblock %}

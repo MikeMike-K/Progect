@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Теория - TutorPro{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="gradient-text fw-bold mb-0">📖 Теория{% if student %}: {{ student.username }}{% endif %}</h2>
+    </div>
+
+    {% if blocks %}
+    {% for block in blocks %}
+    <div class="card mb-4 border-0 shadow-soft">
+        <div class="card-header bg-white border-bottom py-3">
+            <h4 class="mb-0 fw-bold text-primary">📦 {{ block.title }}</h4>
+            {% if block.comment %}<p class="text-muted small mb-0 mt-1">💬 {{ block.comment }}</p>{% endif %}
+        </div>
+        <div class="card-body bg-light">
+            {% for topic in block.topics if topic.visible %}
+            <div class="card mb-3 border-0">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-2">{{ topic.title }}</h5>
+                    {% if topic.comment %}<p class="text-muted small mb-3">💬 {{ topic.comment }}</p>{% endif %}
+                    {% if topic.files %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for f in topic.files %}
+                        <a href="/uploads/theory/{{ f.filepath }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
+                            📎 {{ f.filename }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if standalones %}
+    <h5 class="text-muted mt-4 mb-3">📂 Дополнительные темы</h5>
+    {% for topic in standalones if topic.visible %}
+    <div class="card mb-3 border-start border-4 border-info shadow-soft">
+        <div class="card-body">
+            <h5 class="fw-bold mb-2">{{ topic.title }}</h5>
+            {% if topic.comment %}<p class="text-muted small mb-3">💬 {{ topic.comment }}</p>{% endif %}
+            {% if topic.files %}
+            <div class="d-flex flex-wrap gap-2">
+                {% for f in topic.files %}
+                <a href="/uploads/theory/{{ f.filepath }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
+                    📎 {{ f.filename }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not blocks and not standalones %}
+    <div class="text-center py-5">
+        <div class="display-1 text-muted mb-3">📭</div>
+        <h4 class="text-muted">Теория пока не добавлена</h4>
+        <p class="text-muted small">Преподаватель скоро добавит учебные материалы</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

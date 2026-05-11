@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>🌐 Общий календарь</h2>
+    <a href="/admin/calendar/students" class="btn btn-primary">👨‍🎓 Календари учеников</a>
+</div>
+
+<div class="card mb-3"><div class="card-body d-flex justify-content-between">
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm btn-outline-primary">◀</a>
+    <h5 class="mb-0">{{ month_names[month] }} {{ year }}</h5>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm btn-outline-primary">▶</a>
+</div></div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white small"><div class="row text-center fw-bold">{% for d in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] %}<div class="col">{{ d }}</div>{% endfor %}</div></div>
+    <div class="card-body p-0"><div class="row g-1 p-2">
+        {% for week in calendar_weeks %}<div class="col-12"><div class="row g-1">
+            {% for day in week %}<div class="col text-center" style="min-height:70px; cursor:pointer;" onclick="showGeneralDay({{ day }}, {{ year }}, {{ month }})">
+                {% if day %}
+                {% set evs = events_by_day.get(day, []) %}
+                <span class="badge bg-secondary" style="font-size:.7rem;">{{ day }}</span>
+                <div class="mt-2 d-flex flex-wrap gap-1 justify-content-center">
+                    {% for ev in evs[:4] %}<span style="width:8px;height:8px;border-radius:50%;background:{{ ev.student_color or ev.color }};"></span>{% endfor %}
+                    {% if evs|length > 4 %}<small class="text-muted">+{{ evs|length-4 }}</small>{% endif %}
+                </div>{% endif %}
+            </div>{% endfor %}
+        </div></div>{% endfor %}
+    </div></div>
+</div>
+
+<div class="card mb-4"><div class="card-header bg-secondary text-white">📝 Добавить комментарий в общий календарь</div>
+<div class="card-body">
+    <form method="POST" action="/admin/calendar/add_general" class="row g-2 align-items-end">
+        <div class="col-md-3"><label class="small">Дата</label><input type="date" name="event_date" class="form-control form-control-sm" required></div>
+        <div class="col-md-3"><label class="small">Время</label><input type="text" name="time_str" class="form-control form-control-sm" placeholder="14:00"></div>
+        <div class="col-md-2"><label class="small">Цвет</label><input type="color" name="color" class="form-control form-control-color form-control-sm" value="#95a5a6"></div>
+        <div class="col-md-3"><label class="small">Комментарий</label><input type="text" name="comment" class="form-control form-control-sm" placeholder="Текст..."></div>
+        <div class="col-md-1"><button type="submit" class="btn btn-success btn-sm w-100">➕</button></div>
+    </form>
+</div></div>
+
+<div class="modal fade" id="generalDayModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="gTitle">📅 День</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="gBody"></div>
+</div></div></div>
+
+<script>
+window.showGeneralDay = function(d,y,m) {
+    document.getElementById('gTitle').textContent = `📅 ${d} ${month_names[m]} ${y}`;
+    const evs = window.eventsByDay[d] || [];
+    let html = evs.length ? '' : '<p class="text-muted">Нет событий</p>';
+    evs.forEach(ev => {
+        html += `<div class="border-start border-3 ps-2 mb-2" style="border-color:${ev.student_color||ev.color}!important;">`;
+        if(ev.student_name) html += `<strong>${ev.student_name}</strong><br>`;
+        if(ev.time) html += `<span class="text-primary">${ev.time}</span><br>`;
+        html += `<span>${ev.comment||'Без описания'}</span></div>`;
+    });
+    document.getElementById('gBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('generalDayModal')).show();
+}
+const month_names = {{ month_names|tojson }};
+const eventsByDay = {{ events_by_day|tojson }};
+</script>
+{% endblock %}

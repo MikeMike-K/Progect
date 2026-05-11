@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<style>html { scroll-behavior: smooth; } .cal-cell { min-height: 75px; } .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>📅 Календарь: {{ u.username }}</h2>
+    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">← В панель</a>
+</div>
+
+<div class="card mb-3"><div class="card-body d-flex justify-content-between">
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm btn-outline-primary">◀</a>
+    <h5 class="mb-0">{{ month_names[month] }} {{ year }}</h5>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm btn-outline-primary">▶</a>
+</div></div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white small"><div class="row text-center fw-bold">{% for d in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] %}<div class="col">{{ d }}</div>{% endfor %}</div></div>
+    <div class="card-body p-0"><div class="row g-1 p-2">
+        {% for week in calendar_weeks %}<div class="col-12"><div class="row g-1">
+            {% for day in week %}<div class="col text-center cal-cell border rounded p-1 bg-white">
+                {% if day %}
+                {% set evs = events_by_day.get(day, []) %}
+                <span class="badge {% if day==today.day and month==today.month and year==today.year %}bg-primary{% else %}bg-secondary{% endif %}" style="font-size:.7rem;">{{ day }}</span>
+                <div class="mt-2 d-flex flex-wrap gap-1 justify-content-center">
+                    {% for ev in evs[:4] %}<span class="dot" style="background:{{ ev.color }}"></span>{% endfor %}
+                    {% if evs|length > 4 %}<small class="text-muted">+{{ evs|length-4 }}</small>{% endif %}
+                </div>
+                {% endif %}
+            </div>{% endfor %}
+        </div></div>{% endfor %}
+    </div></div>
+</div>
+
+<div class="card"><div class="card-header fw-bold">📋 События за месяц</div><div class="list-group list-group-flush">
+    {% for ev in items %}
+    {% if ev.event_date.month == month and ev.event_date.year == year %}
+    <div class="list-group-item d-flex justify-content-between">
+        <div><span class="badge text-white me-2" style="background:{{ ev.color }}">{{ ev.event_date.strftime('%d.%m') }}</span>
+            <strong>{{ ev.event_date.strftime('%A') }}</strong>
+            {% if ev.time_str %}<span class="text-muted ms-2">⏰ {{ ev.time_str }}</span>{% endif %}
+        </div>
+        <span class="text-muted small">{{ ev.comment }}</span>
+    </div>
+    {% endif %}{% endfor %}
+</div></div>
+{% endblock %}

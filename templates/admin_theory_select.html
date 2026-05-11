@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Выбор ученика - TutorPro{% endblock %}
+{% block content %}
+<div class="content-card">
+    <h2 class="gradient-text fw-bold mb-4">📖 Управление теорией</h2>
+    <p class="text-muted mb-4">Выберите ученика для работы с учебными материалами</p>
+
+    <div class="row g-3">
+        {% for s in students %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('admin_theory_manage', student_id=s.id) }}" class="text-decoration-none">
+                <div class="feature-card h-100 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ s.username }}</h5>
+                        {% if s.class_grade %}<span class="badge bg-primary">{{ s.class_grade }} класс</span>{% endif %}
+                    </div>
+                    <span class="btn btn-primary btn-sm">→</span>
+                </div>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">Ученики не найдены</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="/admin/panel" class="btn btn-outline-secondary mt-4">← Назад в панель</a>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">
+                    {% if page_type=='homework' %}📚 Создание ДЗ
+                    {% elif page_type=='theory' %}📖 Добавление теории
+                    {% elif page_type=='calendar' %}📅 Запись в календарь
+                    {% else %}💬 Обратная связь{% endif %}
+                    <br><small class="text-muted fw-normal">для {{ u.username }}</small>
+                </h3>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% if page_type == 'calendar' %}
+                        <label class="form-label small fw-bold">📅 Дата</label>
+                        <input type="date" name="event_date" class="form-control mb-3" required>
+                        <label class="form-label small fw-bold">⏰ Время</label>
+                        <input type="text" name="time" class="form-control mb-3" placeholder="14:00 - 15:30">
+                        <label class="form-label small fw-bold">🎨 Цвет</label>
+                        <input type="color" name="color" class="form-control form-control-color mb-3" value="#3788d8">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="is_private" id="isPrivate">
+                            <label class="form-check-label small" for="isPrivate">🔒 Видно только админу</label>
+                        </div>
+                    {% else %}
+                        <label class="form-label small fw-bold">Заголовок</label>
+                        <input type="text" name="heading" class="form-control mb-3" placeholder="Например: Алгебра №5" required>
+
+                        <label class="form-label small fw-bold">Подзаголовок (необязательно)</label>
+                        <input type="text" name="subheading" class="form-control mb-3" placeholder="Уточнение темы">
+
+                        {% if page_type in ['homework', 'theory'] %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">📎 Прикрепить файлы</label>
+                            <div id="fileContainer">
+                                <div class="d-flex gap-2 mb-2">
+                                    <input type="file" name="attach_files" class="form-control">
+                                    <button type="button" class="btn btn-outline-success btn-sm" onclick="addFile()">➕ Ещё</button>
+                                </div>
+                            </div>
+                            <small class="text-muted">Нажмите «➕», чтобы добавить следующий файл</small>
+                        </div>
+                        {% endif %}
+
+                        {% if page_type == 'homework' %}
+                        <div class="alert alert-info py-2 mb-3 small">
+                            💡 Ученик сможет прикрепить свой ответ к этому заданию
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <label class="form-label small fw-bold">Комментарий / Текст</label>
+                    <textarea name="comment" class="form-control mb-4" rows="4" placeholder="Подробное задание или пояснение..."></textarea>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fs-5 fw-bold">💾 Сохранить</button>
+                </form>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a href="/admin/panel" class="text-decoration-none">← Вернуться в панель</a>
+        </div>
+    </div>
+</div>
+<script>
+function addFile() {
+    const container = document.getElementById('fileContainer');
+    const row = document.createElement('div');
+    row.className = 'd-flex gap-2 mb-2';
+    row.innerHTML = `
+        <input type="file" name="attach_files" class="form-control">
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">❌ Убрать</button>
+    `;
+    container.appendChild(row);
+}
+</script>
+{% endblock %}

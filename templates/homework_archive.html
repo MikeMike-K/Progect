@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<style>html { scroll-behavior: smooth; }</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">📚 Домашнее задание</h2>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('homework', user_id=u.id) }}" class="btn btn-outline-primary">📝 Текущие</a>
+        <a href="{{ url_for('homework_archive', user_id=u.id) }}" class="btn btn-primary">📦 Выполнено / Архив</a>
+    </div>
+</div>
+
+{% if items %}
+    {% for item in items %}
+    <div class="card mb-3 opacity-75 border-secondary hw-card" id="hw_{{ item.id }}">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <div><strong>{{ item.heading }}</strong>{% if item.subheading %} <small>| {{ item.subheading }}</small>{% endif %}</div>
+            <div><small>{{ item.created_at.strftime('%d.%m.%Y') }}</small> <span class="badge bg-dark ms-2">📦 В архиве</span></div>
+        </div>
+        <div class="card-body bg-light">
+            <p class="card-text text-muted">{{ item.comment | replace('\n', '<br>') | safe }}</p>
+            {% if item.files %}
+                {% set t_files = item.files | selectattr('uploader_id', 'ne', u.id) | list %}
+                {% set s_files = item.files | selectattr('uploader_id', 'eq', u.id) | list %}
+                {% if t_files %}<div class="mb-2 p-2 rounded border bg-white"><small class="fw-bold">📎 От учителя:</small>{% for f in t_files %}<a href="/uploads/{{ f.filepath }}" target="_blank" class="d-block text-dark mt-1">📄 {{ f.filename }}</a>{% endfor %}</div>{% endif %}
+                {% if s_files %}<div class="mb-2 p-2 rounded border bg-white"><small class="fw-bold">📤 Ваши файлы:</small>{% for f in s_files %}<div class="d-block mt-1 text-muted">📄 {{ f.filename }}</div>{% endfor %}</div>{% endif %}
+            {% endif %}
+            {% if item.student_comment %}<div class="alert alert-light border py-1 mt-2 small text-muted">💬 {{ item.student_comment }}</div>{% endif %}
+        </div>
+        {% if item.grade %}
+        <div class="card-footer bg-secondary bg-opacity-10 border-secondary">
+            <strong class="text-muted">🏆 Оценка: {{ item.grade }}/5</strong>
+            {% if item.teacher_comment %}<span class="text-muted ms-2">💬 {{ item.teacher_comment }}</span>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="alert alert-secondary text-center py-4">📦 В архиве пока нет заданий</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📦 Архив ДЗ: {{ u.username }} <small class="text-muted">({{ u.class_grade }} класс)</small></h2>
+<a href="/admin/archive" class="btn btn-outline-secondary btn-sm mb-3">← Список учеников</a>
+
+{% if items %}
+    {% for item in items %}
+    <div class="card mb-3 border-secondary bg-light">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between">
+            <strong>{{ item.heading }}</strong>
+            <small>{{ item.created_at.strftime('%d.%m.%Y') }}</small>
+        </div>
+        <div class="card-body">
+            <p class="mb-2">{{ item.comment | replace('\n', '<br>') | safe }}</p>
+            {% if item.grade %}<span class="badge bg-success fs-6">🏆 Оценка: {{ item.grade }}/5</span>{% endif %}
+            {% if item.teacher_comment %}<p class="mt-2 text-muted small">💬 {{ item.teacher_comment }}</p>{% endif %}
+            {% if item.files %}
+            <div class="mt-2 small text-muted">📎 Файлов: {{ item.files|length }}</div>
+            {% endif %}
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-end gap-2 border-top">
+            <form action="{{ url_for('admin_hw_action', content_id=item.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="action" value="unarchive">
+                <button type="submit" class="btn btn-sm btn-outline-primary">🔄 Восстановить</button>
+            </form>
+            <form action="{{ url_for('admin_hw_action', content_id=item.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Удалить из архива навсегда?');">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Удалить</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="alert alert-info">У этого ученика нет заархивированных заданий.</div>
+{% endif %}
+{% endblock %}

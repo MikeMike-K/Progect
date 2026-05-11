@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>✏️ Календарь: {{ u.username }} {% if u.class_grade %}<small class="text-muted">({{ u.class_grade }} кл.)</small>{% endif %}</h2>
+    <a href="/admin/calendar/students" class="btn btn-outline-secondary btn-sm">← Список</a>
+</div>
+
+<div class="card mb-3"><div class="card-body d-flex justify-content-between">
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm btn-outline-primary">◀</a>
+    <h5 class="mb-0">{{ month_names[month] }} {{ year }}</h5>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm btn-outline-primary">▶</a>
+</div></div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white small"><div class="row text-center fw-bold">{% for d in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] %}<div class="col">{{ d }}</div>{% endfor %}</div></div>
+    <div class="card-body p-0"><div class="row g-1 p-2">
+        {% for week in calendar_weeks %}<div class="col-12"><div class="row g-1">
+            {% for day in week %}<div class="col text-center" style="min-height:70px;">
+                {% if day %}
+                {% set evs = events_by_day.get(day, []) %}
+                <div class="h-100 border rounded p-1 bg-light" onclick="showStudentDay({{ day }}, {{ year }}, {{ month }})">
+                    <span class="badge bg-secondary" style="font-size:.7rem;">{{ day }}</span>
+                    <div class="mt-2 d-flex flex-wrap gap-1 justify-content-center">
+                        {% for ev in evs[:4] %}<span style="width:6px;height:6px;border-radius:50%;background:{{ student_color }};"></span>{% endfor %}
+                        {% if evs|length > 4 %}<small class="text-muted">+{{ evs|length-4 }}</small>{% endif %}
+                    </div>
+                </div>{% endif %}
+            </div>{% endfor %}
+        </div></div>{% endfor %}
+    </div></div>
+</div>
+
+<button type="button" class="btn btn-success mb-3" id="btnAdd">➕ Добавить событие</button>
+
+<div class="card mb-4"><div class="card-header bg-primary text-white">📋 События за месяц</div>
+<div class="list-group list-group-flush" id="eventList">
+    {% for ev in items %}
+    {% if ev.event_date.month == month and ev.event_date.year == year %}
+    <div class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ ev.id }}" data-date="{{ ev.event_date.strftime('%Y-%m-%d') }}" data-time="{{ ev.time_str or '' }}" data-color="{{ ev.color }}" data-comment="{{ ev.comment or '' }}" data-priv="{{ ev.is_private|lower }}">
+        <div><span style="color:{{ ev.color }};font-size:1.2rem;">●</span> <strong>{{ ev.event_date.strftime('%d.%m') }}</strong> {% if ev.time_str %}⏰ {{ ev.time_str }}{% endif %} {% if ev.comment %}💬 {{ ev.comment }}{% endif %} {% if ev.is_private %}<span class="badge bg-danger ms-1">🔒</span>{% endif %}</div>
+        <div class="d-flex gap-1"><button type="button" class="btn btn-sm btn-outline-primary btn-edit">✏️</button><button type="button" class="btn btn-sm btn-outline-danger btn-del">🗑</button></div>
+    </div>{% endif %}{% else %}<div class="list-group-item text-center text-muted py-3">Нет событий</div>{% endfor %}
+</div></div>
+
+<div class="modal fade" id="eventModal"><div class="modal-dialog">
+<form method="POST" id="eventForm"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="mTitle">➕ Новое событие</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <input type="hidden" name="action" id="f_action" value="add"><input type="hidden" name="event_id" id="f_id" value="">
+        <label class="small fw-bold">📅 Дата</label><input type="date" name="event_date" id="f_date" class="form-control form-control-sm mb-2" required>
+        <label class="small fw-bold">⏰ Время</label><input type="text" name="time_str" id="f_time" class="form-control form-control-sm mb-2" placeholder="14:00 - 15:30">
+        <label class="small fw-bold">🎨 Цвет</label><input type="color" name="color" id="f_color" class="form-control form-control-color form-control-sm mb-2" value="{{ student_color }}">
+        <label class="small fw-bold">📝 Комментарий</label><textarea name="comment" id="f_comment" class="form-control form-control-sm mb-2" rows="2" placeholder="Текст..."></textarea>
+        <div class="form-check"><input class="form-check-input" type="checkbox" name="is_private" id="f_priv"><label class="form-check-label small">🔒 Видно только админу</label></div>
+    </div>
+    <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-danger btn-sm" id="f_del" style="display:none;" onclick="doDel()">🗑</button>
+        <div><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отмена</button><button type="submit" class="btn btn-primary btn-sm">💾 Сохранить</button></div>
+    </div>
+</div></form></div></div>
+
+<form id="delForm" method="POST" style="display:none;"><input type="hidden" name="action" value="delete"><input type="hidden" name="event_id" id="del_id"></form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+    const f = {action:document.getElementById('f_action'), id:document.getElementById('f_id'), date:document.getElementById('f_date'),
+               time:document.getElementById('f_time'), color:document.getElementById('f_color'), comment:document.getElementById('f_comment'), priv:document.getElementById('f_priv'), del:document.getElementById('f_del')};
+    const todayStr = "{{ today.strftime('%Y-%m-%d') }}";
+
+    document.getElementById('btnAdd').onclick = function() {
+        f.action.value='add'; f.id.value=''; f.date.value=todayStr; f.time.value=''; f.color.value='{{ student_color }}'; f.comment.value=''; f.priv.checked=false; f.del.style.display='none';
+        document.getElementById('mTitle').textContent='➕ Новое событие'; modal.show();
+    };
+
+    document.getElementById('eventList').addEventListener('click', function(e) {
+        const row = e.target.closest('.list-group-item'); if(!row) return;
+        if(e.target.classList.contains('btn-edit')) {
+            f.action.value='edit'; f.id.value=row.dataset.id; f.date.value=row.dataset.date; f.time.value=row.dataset.time||'';
+            f.color.value=row.dataset.color||'{{ student_color }}'; f.comment.value=row.dataset.comment||''; f.priv.checked=row.dataset.priv==='true'; f.del.style.display='inline-block';
+            document.getElementById('mTitle').textContent='✏️ Редактировать'; modal.show();
+        }
+        if(e.target.classList.contains('btn-del') && confirm('Удалить?')) { document.getElementById('del_id').value=row.dataset.id; document.getElementById('delForm').submit(); }
+    });
+    window.doDel = function() { f.action.value='delete'; document.getElementById('eventForm').submit(); };
+});
+window.showStudentDay = function(d,y,m) { alert(`Клик по дню ${d}.${m}.${y}. События: ` + JSON.stringify(window.eventsByDay[d]||[])); };
+const month_names = {{ month_names|tojson }};
+const eventsByDay = {{ events_by_day|tojson }};
+</script>
+{% endblock %}

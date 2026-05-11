@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">📚 ДЗ: {{ u.username }}
+        {% if u.class_grade %}<small class="text-muted">({{ u.class_grade }} класс)</small>{% endif %}
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="/admin/homework_review" class="btn btn-outline-secondary btn-sm">← Все ученики</a>
+        <a href="/admin/edit/{{ u.id }}/homework" class="btn btn-primary btn-sm">✏️ Добавить ДЗ</a>
+        <a href="/homework/{{ u.id }}" class="btn btn-outline-info btn-sm" target="_blank">👁 Как ученик</a>
+    </div>
+</div>
+
+{% if items %}
+    {% for item in items %}
+    <!-- 🎨 Определение статуса и цветов -->
+    {% if item.grade %}
+        {% set card_cls, header_cls, status = "border-success", "bg-success", '<span class="badge bg-light text-success">✅ Проверено</span>'|safe %}
+    {% elif item.is_submitted %}
+        {% set card_cls, header_cls, status = "border-warning", "bg-warning", '<span class="badge bg-dark">⏳ Проверяется</span>'|safe %}
+    {% else %}
+        {% set card_cls, header_cls, status = "border-primary", "bg-primary", '<span class="badge bg-light text-dark">⏳ В работе</span>'|safe %}
+    {% endif %}
+
+    <!-- Если в архиве → делаем карточку полупрозрачной -->
+    {% if item.is_archived|default(false) %}
+        {% set card_cls = card_cls + " opacity-75" %}
+        {% set status = status ~ '<span class="badge bg-secondary ms-1">📦 В архиве</span>' %}
+    {% endif %}
+
+    <div class="card mb-3 {{ card_cls }}">
+        <div class="card-header {{ header_cls }} text-white d-flex justify-content-between align-items-center">
+            <strong>{{ item.heading }}</strong>
+            <div class="d-flex align-items-center gap-2">
+                <small>{{ item.created_at.strftime('%d.%m.%Y') if item.created_at else '' }}</small>
+                {{ status }}
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- 📝 Текст задания -->
+            <p class="card-text">{{ item.comment | replace('\n', '<br>') | safe }}</p>
+
+            <!-- 📎 РАЗДЕЛЕНИЕ ФАЙЛОВ -->
+            {% if item.files %}
+                {% set t_files = item.files | selectattr('uploader_id', 'ne', u.id) | list %}
+                {% set s_files = item.files | selectattr('uploader_id', 'eq', u.id) | list %}
+
+                {% if t_files %}
+                <div class="mb-2 bg-light p-2 rounded border">
+                    <small class="text-muted fw-bold d-block mb-1">📎 Материалы от учителя:</small>
+                    {% for f in t_files %}
+                    <a href="/uploads/{{ f.filepath }}" target="_blank" class="d-block text-dark text-decoration-none mb-1">
+                        📄 {{ f.filename }} <small class="text-muted">({{ f.created_at.strftime('%d.%m') }})</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if s_files %}
+                <div class="mb-2 bg-success bg-opacity-10 p-2 rounded border border-success">
+                    <small class="text-success fw-bold d-block mb-1">📤 Файлы от ученика:</small>
+                    {% for f in s_files %}
+                    <a href="/uploads/{{ f.filepath }}" target="_blank" class="d-block text-dark text-decoration-none mb-1">
+                        📄 {{ f.filename }} <small class="text-muted">({{ f.created_at.strftime('%d.%m %H:%M') }})</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- 💬 Комментарий ученика -->
+            {% if item.student_comment %}
+            <div class="alert alert-light border mt-2 py-2">
+                <strong>💬 Пояснение ученика:</strong> {{ item.student_comment }}
+            </div>
+            {% endif %}
+
+            <!-- 📝 ФОРМА ОЦЕНКИ (если отправлено, но не проверено) -->
+            {% if item.is_submitted and not item.grade %}
+            <hr>
+            <form action="/admin/grade/{{ item.id }}" method="POST" class="mt-2 p-3 bg-light rounded border">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <select name="grade" class="form-select form-select-sm" required style="width: 90px;">
+                            <option value="">Оценка</option>
+                            {% for i in range(1,6) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                        <input type="text" name="teacher_comment" class="form-control form-control-sm" placeholder="Комментарий к оценке...">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success btn-sm">💾 Отправить результат</button>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
+            <!-- 🏆 РЕЗУЛЬТАТ ПРОВЕРКИ -->
+            {% if item.grade %}
+            <div class="alert alert-success mt-3 py-2 d-flex justify-content-between align-items-center">
+                <strong>🏆 Оценка: {{ item.grade }}/5</strong>
+                {% if item.teacher_comment %}<span class="ms-2">💬 {{ item.teacher_comment }}</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 📦 КНОПКИ УПРАВЛЕНИЯ -->
+        <div class="card-footer bg-white d-flex justify-content-end gap-2 border-top">
+            <form action="{{ url_for('admin_hw_action', content_id=item.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="action" value="archive">
+                <button type="submit" class="btn btn-sm btn-outline-dark"
+                        {% if item.is_archived|default(false) %}disabled title="Уже в архиве"{% endif %}>
+                    📦 В архив
+                </button>
+            </form>
+            <form action="{{ url_for('admin_hw_action', content_id=item.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('⚠️ Удалить ДЗ и все прикрепленные файлы навсегда? Это действие нельзя отменить.');">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Удалить</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info text-center py-4">
+        <h5>📭 Заданий пока нет</h5>
+        <p class="mb-0">Нажмите «✏️ Добавить ДЗ», чтобы создать первое задание для этого ученика.</p>
+    </div>
+{% endif %}
+{% endblock %}

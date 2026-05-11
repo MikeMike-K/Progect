@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💬 Чат с администрацией</h2>
+<div class="card shadow-sm" style="height:70vh; display:flex; flex-direction:column;">
+    <div class="card-header bg-primary text-white">Чат с учителем</div>
+    <div class="card-body overflow-auto flex-grow-1 bg-light p-3" id="chat-box">
+        {% for msg in messages %}
+        <div class="d-flex {% if msg.sender_id == current_user.id %}justify-content-end{% else %}justify-content-start{% endif %} mb-3">
+            <div class="p-2 rounded shadow-sm {% if msg.sender_id == current_user.id %}bg-primary text-white{% else %}bg-white border{% endif %}" style="max-width:75%; word-wrap:break-word;">
+                {% if msg.message %}{{ msg.message }}{% endif %}
+                {% if msg.filename %}<div class="mt-1">
+                    {% if msg.filename.lower().endswith(('.png','.jpg','.jpeg','.gif','.webp')) %}
+                        <img src="/uploads/{{ msg.filepath }}" class="img-fluid rounded mt-1" style="max-height:180px;">
+                    {% else %}<a href="/uploads/{{ msg.filepath }}" class="btn btn-sm btn-light text-primary mt-1" target="_blank">📎 {{ msg.filename }}</a>{% endif %}</div>{% endif %}
+                <div class="text-end mt-1" style="font-size:.7rem; opacity:.8;">{{ msg.created_at.strftime('%d.%m %H:%M') }}</div></div></div>
+        {% else %}<p class="text-center text-muted mt-5">Сообщений нет.</p>{% endfor %}</div>
+    <div class="card-footer bg-white p-2"><form method="POST" enctype="multipart/form-data" class="d-flex gap-2">
+        <input type="file" name="chat_file" class="form-control form-control-sm" accept="image/*,.pdf,.doc,.docx,.zip">
+        <input type="text" name="message" class="form-control" placeholder="Сообщение..." required autocomplete="off">
+        <button type="submit" class="btn btn-primary px-3">📤</button></form></div></div>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.getElementById('chat-box').scrollTop=999999;});</script>
+{% endblock %}

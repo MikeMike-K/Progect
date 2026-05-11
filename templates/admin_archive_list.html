@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📦 Архив домашних заданий</h2>
+<p class="text-muted">Здесь хранятся проверенные и заархивированные работы</p>
+
+<div class="list-group shadow-sm">
+    {% for s in students %}
+    <a href="/admin/archive/{{ s.user.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+        <div>
+            <strong class="fs-5">{{ s.user.username }}</strong>
+            {% if s.user.class_grade %}<span class="badge bg-secondary ms-2">{{ s.user.class_grade }} класс</span>{% endif %}
+        </div>
+        <span class="badge bg-dark rounded-pill">{{ s.count }} в архиве</span>
+    </a>
+    {% else %}
+    <div class="list-group-item text-center py-4 text-muted">Архив пуст</div>
+    {% endfor %}
+</div>
+<a href="/admin/panel" class="btn btn-secondary mt-3">← Назад в панель</a>
+{% endblock %}

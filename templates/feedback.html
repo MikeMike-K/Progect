@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💬 Обратная связь</h2>
+{% for item in items %}
+<div class="card mb-3"><div class="card-header bg-warning d-flex justify-content-between">
+    <strong>{{ item.heading }}</strong><small>{{ item.created_at.strftime('%d.%m.%Y') }}</small></div>
+    <div class="card-body"><p>{{ item.comment | replace('\n', '<br>') | safe }}</p>
+    {% if item.files %}<div class="mt-2 pt-2 border-top">{% for f in item.files %}
+        <a href="/uploads/{{ f.filepath }}" class="btn btn-sm btn-outline-dark me-2" target="_blank">📎 {{ f.filename }}</a>{% endfor %}</div>{% endif %}</div></div>
+{% else %}<p class="text-muted">Сообщений нет.</p>{% endfor %}
+{% endblock %}

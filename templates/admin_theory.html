@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">📖 Теория: {{ student.username }} <a href="/admin/theory" class="btn btn-sm btn-outline-secondary ms-2">← Сменить</a></h2>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" onclick="toggleForm('blockForm')">➕ Блок</button>
+        <button class="btn btn-outline-primary" onclick="toggleForm('topicForm')">➕ Тема</button>
+    </div>
+</div>
+
+<!-- ФОРМЫ ДОБАВЛЕНИЯ -->
+<div id="blockForm" class="card mb-3 bg-light d-none">
+    <div class="card-body"><form method="POST">
+        <input type="hidden" name="action" value="add_block">
+        <div class="row g-2"><div class="col"><input type="text" name="title" class="form-control" placeholder="Название блока" required></div>
+        <div class="col"><input type="text" name="comment" class="form-control" placeholder="Комментарий к блоку"></div>
+        <div class="col-auto"><button class="btn btn-success">Создать</button></div></div>
+    </form></div>
+</div>
+<div id="topicForm" class="card mb-3 bg-light d-none">
+    <div class="card-body"><form method="POST">
+        <input type="hidden" name="action" value="add_topic"><input type="hidden" name="block_id" id="newTopicBlockId">
+        <div class="row g-2"><div class="col"><input type="text" name="title" class="form-control" placeholder="Название темы" required></div>
+        <div class="col"><input type="text" name="comment" class="form-control" placeholder="Комментарий к теме"></div>
+        <div class="col-auto"><button class="btn btn-success">Создать</button></div></div>
+    </form></div>
+</div>
+
+<!-- БЛОКИ -->
+{% for block in blocks %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center {% if not block.visible %}bg-warning-subtle{% endif %}">
+        <h5 class="mb-0 fw-bold">{{ block.title }} {% if not block.visible %}🔒{% endif %}</h5>
+        <div class="d-flex gap-1">
+            <form method="POST"><input type="hidden" name="action" value="toggle_block"><input type="hidden" name="block_id" value="{{ block.id }}">
+                <button class="btn btn-sm {% if block.visible %}btn-outline-success{% else %}btn-outline-secondary{% endif %}">{% if block.visible %}👁️{% else %}🙈{% endif %}</button></form>
+            <button class="btn btn-sm btn-outline-warning" onclick="editEntity('block', {{ block.id }}, '{{ block.title|e }}', {{ block.comment|tojson }})">✏️</button>
+            <form method="POST" onsubmit="return confirm('Удалить блок и всё внутри?')"><input type="hidden" name="action" value="delete_block"><input type="hidden" name="block_id" value="{{ block.id }}">
+                <button class="btn btn-sm btn-outline-danger">🗑️</button></form>
+        </div>
+    </div>
+    {% if block.comment %}<div class="px-3 py-1 bg-white border-bottom small text-muted">💬 {{ block.comment }}</div>{% endif %}
+    <div class="card-body bg-white">
+        <button class="btn btn-sm btn-link text-primary mb-2 p-0" onclick="showTopicForm({{ block.id }})">➕ Добавить тему в блок</button>
+        {% for topic in block.topics %}
+        <div class="border-bottom py-2 {% if not topic.visible %}opacity-50{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div><strong>{{ topic.title }} {% if not topic.visible %}🔒{% endif %}</strong><br>
+                {% if topic.comment %}<small class="text-muted">💬 {{ topic.comment }}</small>{% endif %}</div>
+                <div class="d-flex gap-1">
+                    <form method="POST"><input type="hidden" name="action" value="toggle_topic"><input type="hidden" name="topic_id" value="{{ topic.id }}">
+                        <button class="btn btn-sm {% if topic.visible %}btn-outline-success{% else %}btn-outline-secondary{% endif %}">{% if topic.visible %}👁️{% else %}🙈{% endif %}</button></form>
+                    <button class="btn btn-sm btn-outline-warning" onclick="editEntity('topic', {{ topic.id }}, '{{ topic.title|e }}', {{ topic.comment|tojson }})">✏️</button>
+                    <form method="POST" onsubmit="return confirm('Удалить тему и файлы?')"><input type="hidden" name="action" value="delete_topic"><input type="hidden" name="topic_id" value="{{ topic.id }}">
+                        <button class="btn btn-sm btn-outline-danger">🗑️</button></form>
+                </div>
+            </div>
+            <!-- ФАЙЛЫ -->
+            <div class="mt-2 d-flex flex-wrap gap-2">{% for f in topic.files %}
+            <span class="badge bg-light text-dark border p-2 d-flex align-items-center gap-2">
+                📎 <a href="/uploads/theory/{{ f.filepath }}" target="_blank" class="text-dark">{{ f.filename }}</a>
+                <form method="POST" class="d-inline"><input type="hidden" name="action" value="delete_file"><input type="hidden" name="file_id" value="{{ f.id }}"><button class="btn btn-sm btn-link text-danger p-0">✖</button></form>
+            </span>{% endfor %}</div>
+            <form method="POST" enctype="multipart/form-data" class="d-flex gap-2 align-items-center mt-2">
+                <input type="hidden" name="action" value="upload_file"><input type="hidden" name="topic_id" value="{{ topic.id }}">
+                <input type="file" name="file" class="form-control form-control-sm" required><button type="submit" class="btn btn-sm btn-success">📤 Загрузить</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+<!-- ОТДЕЛЬНЫЕ ТЕМЫ -->
+{% if standalones %}
+<h5 class="text-muted mt-4 mb-2 border-top pt-2">📂 Отдельные темы</h5>
+{% for topic in standalones %}
+<div class="card mb-2 border-start {% if topic.visible %}border-primary{% else %}border-secondary{% endif %}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between"><div><strong>{{ topic.title }} {% if not topic.visible %}🔒{% endif %}</strong><br>
+        {% if topic.comment %}<small class="text-muted">💬 {{ topic.comment }}</small>{% endif %}</div>
+        <div class="d-flex gap-1">
+            <form method="POST"><input type="hidden" name="action" value="toggle_topic"><input type="hidden" name="topic_id" value="{{ topic.id }}"><button class="btn btn-sm {% if topic.visible %}btn-outline-success{% else %}btn-outline-secondary{% endif %}">{% if topic.visible %}👁️{% else %}🙈{% endif %}</button></form>
+            <button class="btn btn-sm btn-outline-warning" onclick="editEntity('topic', {{ topic.id }}, '{{ topic.title|e }}', {{ topic.comment|tojson }})">✏️</button>
+            <form method="POST" onsubmit="return confirm('Удалить?')"><input type="hidden" name="action" value="delete_topic"><input type="hidden" name="topic_id" value="{{ topic.id }}"><button class="btn btn-sm btn-outline-danger">🗑️</button></form>
+        </div></div>
+        <div class="mt-2 d-flex flex-wrap gap-2">{% for f in topic.files %}<span class="badge bg-light text-dark border p-2 d-flex align-items-center gap-2">📎 <a href="/uploads/theory/{{ f.filepath }}" target="_blank" class="text-dark">{{ f.filename }}</a><form method="POST" class="d-inline"><input type="hidden" name="action" value="delete_file"><input type="hidden" name="file_id" value="{{ f.id }}"><button class="btn btn-sm btn-link text-danger p-0">✖</button></form></span>{% endfor %}</div>
+        <form method="POST" enctype="multipart/form-data" class="d-flex gap-2 align-items-center mt-2"><input type="hidden" name="action" value="upload_file"><input type="hidden" name="topic_id" value="{{ topic.id }}"><input type="file" name="file" class="form-control form-control-sm" required><button type="submit" class="btn btn-sm btn-success">📤 Загрузить</button></form>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<script>
+function toggleForm(id) { document.getElementById(id).classList.toggle('d-none'); window.scrollTo(0,0); }
+function showTopicForm(bid) { toggleForm('topicForm'); document.getElementById('newTopicBlockId').value = bid; }
+function editEntity(type, id, title, comment) {
+    const t = prompt('Название:', title);
+    if(!t) return;
+    const c = prompt('Комментарий:', comment||'');
+    fetch('/admin/theory/{{ student.id }}', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`action=edit_${type}&${type}_id=${id}&title=${encodeURIComponent(t)}&comment=${encodeURIComponent(c||'')}`}).then(()=>location.reload());
+}
+</script>
+{% endblock %}

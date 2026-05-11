@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Регистрация - TutorPro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="text-center mb-4">
+                <h2 class="gradient-text fw-bold mb-2">📝 Регистрация</h2>
+                <p class="text-muted">Создайте аккаунт в TutorPro</p>
+            </div>
+            <form method="POST" id="regForm">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">👤 Логин</label>
+                    <input type="text" name="username" class="form-control" required placeholder="Придумайте логин">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">🔑 Пароль</label>
+                    <input type="password" name="password" class="form-control" required placeholder="Минимум 6 символов">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">🎓 Роль</label>
+                    <select name="role" id="roleSelect" class="form-select" required>
+                        <option value="">Выберите роль...</option>
+                        <option value="student">👨‍🎓 Ученик</option>
+                        <option value="parent">👨‍👩‍ Родитель</option>
+                    </select>
+                </div>
+
+                <div class="mb-3" id="studentField" style="display:none;">
+                    <label class="form-label fw-semibold">🏫 Класс обучения</label>
+                    <select name="class_grade" class="form-select">
+                        <option value="">Выберите класс...</option>
+                        {% for i in range(1, 12) %}<option value="{{ i }}">{{ i }} класс</option>{% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3" id="parentField" style="display:none;">
+                    <label class="form-label fw-semibold">👤 Логин ученика (ребёнка)</label>
+                    <input type="text" name="child_username" class="form-control" placeholder="Точный логин ученика">
+                    <small class="text-muted">Введите логин, который указал ученик при регистрации</small>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="privacyConsent" name="privacy_consent" required>
+                    <label class="form-check-label small" for="privacyConsent">
+                        ✅ Даю согласие на обработку <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">персональных данных</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3">Зарегистрироваться</button>
+            </form>
+            <div class="text-center mt-4">
+                <p class="text-muted mb-0">Уже есть аккаунт? <a href="/login" class="text-decoration-none">Войти</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">🔒 Политика конфиденциальности</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p class="small">Нажимая кнопку регистрации, вы даете согласие на обработку ваших персональных данных в соответствии с требованиями законодательства. Данные используются исключительно для обеспечения учебного процесса и не передаются третьим лицам.</p>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Понятно</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('roleSelect').addEventListener('change', function() {
+        document.getElementById('studentField').style.display = this.value === 'student' ? 'block' : 'none';
+        document.getElementById('parentField').style.display = this.value === 'parent' ? 'block' : 'none';
+    });
+</script>
+{% endblock %}

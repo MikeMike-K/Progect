@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>⚙️ Админ-панель</h2>
+<div class="mb-3">
+    <a href="/admin/homework_review" class="btn btn-outline-success">📋 Просмотр ДЗ учеников</a>
+</div>
+
+<table class="table table-striped table-hover bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>Логин</th>
+            <th>Роль</th>
+            <th>Класс</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ u.class_grade or '-' }}</td>
+             <td class="py-2 align-middle">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <a href="/profile/{{ u.id }}" class="btn btn-sm btn-outline-secondary">👤</a>
+                    <a href="/homework/{{ u.id }}" class="btn btn-sm btn-outline-primary">📚</a>
+                    <a href="/theory/{{ u.id }}" class="btn btn-sm btn-outline-info">📖</a>
+
+                    <!-- ✅ ФОРМА ПЕРЕХОДА К РЕДАКТИРОВАНИЮ -->
+                    <form action="{{ url_for('admin_edit_choose') }}" method="POST" class="d-flex gap-1 align-items-center">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <select name="page_type" class="form-select form-select-sm" required style="width: 110px;">
+                            <option value="homework">📝 ДЗ</option>
+                            <option value="theory">📖 Теория</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary" title="Перейти к редактированию">✏️</button>
+                    </form>
+                    <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" class="d-inline"
+                          onsubmit="return confirm('⚠️ Удалить аккаунт {{ u.username }}? Это действие нельзя отменить.');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить аккаунт">🗑</button>
+                    </form>
+                </div>
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
