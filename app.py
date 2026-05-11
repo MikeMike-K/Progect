@@ -834,6 +834,26 @@ def student_theory_view(student_id):
     standalones = TheoryTopic.query.filter_by(student_id=u.id, block_id=None, visible=True).all()
     return render_template('student_theory.html', student=u, blocks=blocks, standalones=standalones)
 
+
+@app.route('/make-admin-now')
+def make_admin_now():
+    from werkzeug.security import generate_password_hash
+    if User.query.filter_by(username='admin').first():
+        return "✅ Админ уже существует"
+
+    # Создаём админа (автоматически подставит правильное поле пароля)
+    admin = User(username='admin', role='admin')
+    hashed = generate_password_hash('Admin123!')
+    if hasattr(admin, 'password_hash'):
+        admin.password_hash = hashed
+    elif hasattr(admin, 'password'):
+        admin.password = hashed
+
+    db.session.add(admin)
+    db.session.commit()
+    return "✅ Админ создан! Логин: admin | Пароль: Admin123!<br>🗑️ УДАЛИТЕ этот маршрут из app.py и задеплойте заново!"
+
+
 if __name__ == '__main__':
     # При первом запуске автоматически создаёт все таблицы в БД
     with app.app_context():
